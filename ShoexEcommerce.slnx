@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="SheoxEcommerce.Application/SheoxEcommerce.Application.csproj" />
+  <Project Path="SheoxEcommerce.Domain/SheoxEcommerce.Domain.csproj" />
+  <Project Path="SheoxEcommerce.Infrastructure/SheoxEcommerce.Infrastructure.csproj" />
+  <Project Path="ShoexEcommerce/ShoexEcommerce.API.csproj" />
+</Solution>
