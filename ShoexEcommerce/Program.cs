@@ -244,24 +244,20 @@ using ShoexEcommerce.Infrastructure.Settings;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
-using ShoexEcommerce.Application.Interfaces.Media;
-using ShoexEcommerce.Infrastructure.Services;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --------------------
 // DbContext
-// --------------------
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
 // If any service reads HttpContext (claims/cookies)
 builder.Services.AddHttpContextAccessor();
 
-// --------------------
 // Services
-// --------------------
-builder.Services.AddScoped<TokenService>();              // ✅ no ITokenService in your project
+
+builder.Services.AddScoped<TokenService>();              
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IBrandService, BrandService>();
 builder.Services.AddScoped<IGenderService, GenderService>();
@@ -278,9 +274,7 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IAdminUserService, AdminUserService>();
 
-// --------------------
 // Cloudinary
-// --------------------
 builder.Services.AddSingleton(sp =>
 {
     var config = builder.Configuration.GetSection("Cloudinary");
@@ -294,9 +288,7 @@ builder.Services.AddSingleton(sp =>
     return new Cloudinary(account);
 });
 
-// --------------------
 // JWT
-// --------------------
 var jwtKey = builder.Configuration["Jwt:Key"];
 if (string.IsNullOrWhiteSpace(jwtKey))
     throw new Exception("Jwt:Key is missing in ShoexEcommerce.API appsettings.json");
@@ -366,9 +358,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// --------------------
 // Controllers + Swagger
-// --------------------
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
@@ -404,9 +394,7 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// --------------------
 // Dev + Seeding
-// --------------------
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -428,9 +416,7 @@ if (app.Environment.IsDevelopment())
     }
 }
 
-// --------------------
 // Middleware
-// --------------------
 if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();

@@ -18,7 +18,7 @@ namespace ShoexEcommerce.Infrastructure.Security
         private readonly IEmailService _email;
         private readonly ISmsService _sms;
 
-
+        // Constructor injection: these dependencies are given by DI container 
         public AuthService(AppDbContext db, TokenService tokenService, IEmailService email, ISmsService sms)
         {
             _db = db;
@@ -28,8 +28,7 @@ namespace ShoexEcommerce.Infrastructure.Security
         }
 
 
-
-        // Normalizers (null-safe)
+        // Normalizers (null-safe)These methods clean inputs to avoid issues like spaces/case differences
 
         private static string NormalizeEmail(string? email)
             => (email ?? string.Empty).Trim().ToLowerInvariant();
@@ -53,6 +52,8 @@ namespace ShoexEcommerce.Infrastructure.Security
 
             return string.IsNullOrWhiteSpace(roleName) ? "User" : roleName!;
         }
+
+
         //register 
         public async Task<ApiResponse<string>> RegisterAsync(RegisterDto dto)
         {
@@ -102,9 +103,8 @@ namespace ShoexEcommerce.Infrastructure.Security
         }
 
 
-        // -------------------------
         // Login
-        // -------------------------
+       
         public async Task<ApiResponse<LoginResponseDto>> LoginAsync(LoginDto dto)
         {
             var username = NormalizeUsername(dto.Username);
@@ -146,9 +146,7 @@ namespace ShoexEcommerce.Infrastructure.Security
             return ApiResponse<LoginResponseDto>.Success(data, "Login successful", 200);
         }
 
-        // -------------------------
         // Profile
-        // -------------------------
         public async Task<ProfileDto> GetProfileAsync(int userId)
         {
             var user = await _db.Users
@@ -171,9 +169,8 @@ namespace ShoexEcommerce.Infrastructure.Security
             };
         }
 
-        // -------------------------
         // Refresh Token
-        // -------------------------
+        
         public async Task<ApiResponse<RefreshTokenResponseDto>> RefreshTokenAsync(string refreshToken)
         {
             if (string.IsNullOrWhiteSpace(refreshToken))
@@ -247,7 +244,7 @@ namespace ShoexEcommerce.Infrastructure.Security
             return ApiResponse<string>.Success(null, "Logged out successfully", 200);
         }
 
-        // Update Profile (NO duplicate checks)
+        // Update Profile 
 
         public async Task<ApiResponse<string>> UpdateMyProfileAsync(
             int userId,
@@ -362,7 +359,7 @@ namespace ShoexEcommerce.Infrastructure.Security
                 return ApiResponse<string>.Fail("Invalid OTP.", 400);
             }
 
-            // OTP verified -> create reset token (return to client)
+            // OTP verified - create reset token (return to client)
             var resetToken = OtpHelper.GenerateResetToken();
             otpRow.VerifiedAtUtc = DateTime.UtcNow;
             otpRow.ResetTokenHash = OtpHelper.Sha256($"{user.Id}:{resetToken}");
@@ -393,7 +390,7 @@ namespace ShoexEcommerce.Infrastructure.Security
             if (otpRow == null)
                 return ApiResponse<string>.Fail("OTP not verified. Please verify OTP first.", 400);
 
-            //  Check OTP again (as you requested)
+            //  Check OTP again 
             if (otpRow.IsExpired())
                 return ApiResponse<string>.Fail("OTP expired. Please request again.", 400);
 

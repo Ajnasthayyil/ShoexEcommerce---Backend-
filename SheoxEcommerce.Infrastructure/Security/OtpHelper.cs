@@ -5,7 +5,7 @@ namespace ShoexEcommerce.Infrastructure.Security
 {
     public static class OtpHelper
     {
-        // ✅ 6-digit numeric OTP
+        // 6-digit numeric OTP
         public static string GenerateOtp(int length = 6)
         {
             var bytes = RandomNumberGenerator.GetBytes(length);
@@ -17,7 +17,7 @@ namespace ShoexEcommerce.Infrastructure.Security
             return sb.ToString();
         }
 
-        // ✅ SHA256 hash (used for OTP + ResetToken hashing)
+        // SHA256 hash (used for OTP + ResetToken hashing)
         public static string Sha256(string input)
         {
             using var sha = SHA256.Create();
@@ -25,7 +25,7 @@ namespace ShoexEcommerce.Infrastructure.Security
             return Convert.ToHexString(hash); // Hex string
         }
 
-        // ✅ Random reset token (return to client after OTP verify)
+        // Random reset token (return to client after OTP verify)
         public static string GenerateResetToken()
         {
             return Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));

@@ -4,7 +4,6 @@ namespace ShoexEcommerce.Application.DTOs.Address
 {
     public class AddAddressDto
     {
-        // Starts with a letter, no leading digit/special char
         private const string StartsWithLetterPattern = @"^[A-Za-z][A-Za-z0-9\s,.-]*$";
 
         [Required(ErrorMessage = "Full name is required")]

@@ -11,7 +11,7 @@ namespace ShoexEcommerce.Domain.Entities
         public string Email { get; set; } = null!;
 
         public string PasswordHash { get; set; } = null!;
-        public int RoleId { get; set; }  // backend sets this (2 for User)
+        public int RoleId { get; set; }  
         public Role Role { get; set; } = null!;
 
         public bool IsBlocked { get; set; } = false;

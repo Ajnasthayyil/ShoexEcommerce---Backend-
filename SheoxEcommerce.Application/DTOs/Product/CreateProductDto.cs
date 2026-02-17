@@ -29,7 +29,7 @@ namespace ShoexEcommerce.Application.DTOs.Product
         [Range(1, int.MaxValue, ErrorMessage = "GenderId must be valid")]
         public int GenderId { get; set; }
 
-        // ✅ Multiple sizes allowed (NO STOCK here)
+        //  Multiple sizes allowed 
         [Required(ErrorMessage = "At least one size is required")]
         [MinLength(1, ErrorMessage = "At least one size is required")]
         public List<int> SizeIds { get; set; } = new();

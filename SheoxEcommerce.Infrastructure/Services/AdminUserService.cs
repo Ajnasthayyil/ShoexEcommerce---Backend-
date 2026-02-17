@@ -15,9 +15,7 @@ namespace ShoexEcommerce.Infrastructure.Services
             _db = db;
         }
 
-        // -------------------------
         // Get all users
-        // -------------------------
         public async Task<ApiResponse<List<AdminUserListDto>>> GetAllAsync(CancellationToken ct = default)
         {
             var users = await _db.Users
@@ -42,9 +40,8 @@ namespace ShoexEcommerce.Infrastructure.Services
             return ApiResponse<List<AdminUserListDto>>.Success(users, "Users fetched", 200);
         }
 
-        // -------------------------
         // Get user by id
-        // -------------------------
+       
         public async Task<ApiResponse<AdminUserDetailDto>> GetByIdAsync(int id, CancellationToken ct = default)
         {
             var user = await _db.Users
@@ -72,9 +69,7 @@ namespace ShoexEcommerce.Infrastructure.Services
             return ApiResponse<AdminUserDetailDto>.Success(user, "User fetched", 200);
         }
 
-        // -------------------------
         // Block / Unblock User
-        // -------------------------
         public async Task<ApiResponse<string>> ToggleBlockAsync(int adminId, int userId, CancellationToken ct = default)
         {
             if (adminId == userId)
@@ -116,9 +111,7 @@ namespace ShoexEcommerce.Infrastructure.Services
         }
 
 
-        // -------------------------
         // Delete user permanently
-        // -------------------------
         public async Task<ApiResponse<string>> DeleteAsync(int id, CancellationToken ct = default)
         {
             var user = await _db.Users

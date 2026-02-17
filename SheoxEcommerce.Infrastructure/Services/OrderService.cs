@@ -384,5 +384,55 @@ namespace ShoexEcommerce.Infrastructure.Services
 
             return ApiResponse<string>.Success(null, "Status updated", 200);
         }
+
+        public async Task<ApiResponse<string>> CancelMyOrderAsync(int userId, CancelOrderDto dto, CancellationToken ct = default)
+{
+    // load order + items (must be tracked because we update stock)
+    var order = await _db.Orders
+        .Include(o => o.Items)
+        .FirstOrDefaultAsync(o => o.Id == dto.OrderId && o.UserId == userId && o.IsActive, ct);
+
+    if (order == null)
+        return ApiResponse<string>.Fail("Order not found", 404);
+
+    // ❌ cannot cancel final status
+    if (order.Status == OrderStatus.Delivered)
+        return ApiResponse<string>.Fail("Delivered orders cannot be cancelled", 400);
+
+    if (order.Status == OrderStatus.Cancelled)
+        return ApiResponse<string>.Fail("Order already cancelled", 409);
+
+    // ✅ optional rule: prevent cancel after shipped
+    if (order.Status == OrderStatus.Shipped)
+        return ApiResponse<string>.Fail("Shipped orders cannot be cancelled", 400);
+
+    await using var trx = await _db.Database.BeginTransactionAsync(ct);
+
+    try
+    {
+        // restore stock back to ProductSizes
+        foreach (var item in order.Items)
+        {
+            var ps = await _db.ProductSizes
+                .FirstOrDefaultAsync(x => x.ProductId == item.ProductId && x.SizeId == item.SizeId, ct);
+
+            if (ps != null)
+                ps.Stock += item.Quantity;
+        }
+
+        order.Status = OrderStatus.Cancelled;
+        order.ModifiedOn = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync(ct);
+        await trx.CommitAsync(ct);
+
+        return ApiResponse<string>.Success(null, "Order cancelled successfully", 200);
+    }
+    catch
+    {
+        await trx.RollbackAsync(ct);
+        throw;
+    }
+}
     }
 }

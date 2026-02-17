@@ -65,5 +65,15 @@ namespace ShoexEcommerce.API.Controllers
             var res = await _orders.GetMyOrderDetailAsync(userId.Value, orderId, ct);
             return StatusCode(res.StatusCode, res);
         }
+
+        [HttpPatch("cancel")]
+        public async Task<IActionResult> Cancel([FromBody] CancelOrderDto dto, CancellationToken ct)
+        {
+            // adapt this line to your way of reading userId from token
+            var userId = int.Parse(User.FindFirst("userid")!.Value);
+
+            var result = await _orders.CancelMyOrderAsync(userId, dto, ct);
+            return StatusCode(result.StatusCode, result);
+        }
     }
 }

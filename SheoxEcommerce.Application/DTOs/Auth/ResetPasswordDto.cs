@@ -16,7 +16,6 @@ namespace ShoexEcommerce.Application.DTOs.Auth
         [Required]
         public string ResetToken { get; set; } = null!;
 
-        // strong password validation
         [Required]
         [MinLength(8)]
         [RegularExpression(

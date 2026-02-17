@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".gitignore" />
+  </Folder>
   <Project Path="SheoxEcommerce.Application/SheoxEcommerce.Application.csproj" />
   <Project Path="SheoxEcommerce.Domain/SheoxEcommerce.Domain.csproj" />
   <Project Path="SheoxEcommerce.Infrastructure/SheoxEcommerce.Infrastructure.csproj" />
