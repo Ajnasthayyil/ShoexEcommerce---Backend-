@@ -18,10 +18,7 @@ namespace ShoexEcommerce.Infrastructure.Services
             _db = db;
         }
 
-        // ----------------------------------------------------
-        // USER: Place Order from Cart (Checkout)
-        // Body: { addressId, paymentMethod }
-        // ----------------------------------------------------
+     
         public async Task<ApiResponse<string>> PlaceOrderAsync(int userId, PlaceOrderDto dto, CancellationToken ct = default)
         {
             // 1) Validate user
