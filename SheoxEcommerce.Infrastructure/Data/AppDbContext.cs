@@ -298,6 +298,13 @@ namespace ShoexEcommerce.Infrastructure.Data
                 e.Property(x => x.UnitPrice).HasPrecision(18, 2);
                 e.Property(x => x.TotalPrice).HasPrecision(18, 2);
             });
+            //default address 
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.ShippingAddress)
+                .WithMany()
+                .HasForeignKey(o => o.ShippingAddressId)
+                .OnDelete(DeleteBehavior.Restrict);
+
         }
     }
 }
