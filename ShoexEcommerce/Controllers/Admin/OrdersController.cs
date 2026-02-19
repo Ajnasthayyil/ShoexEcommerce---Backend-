@@ -28,7 +28,7 @@ namespace ShoexEcommerce.API.Controllers.Admin
         public async Task<IActionResult> GetDetail(int orderId, CancellationToken ct)
         {
             var res = await _orders.AdminGetOrderDetailAsync(orderId, ct);
-           
+
             return StatusCode(res.StatusCode, res);
         }
 

@@ -57,7 +57,7 @@ namespace ShoexEcommerce.API.Controllers
         }
 
         [HttpPatch("cancel")]
-        public async Task<IActionResult> Cancel([FromBody] CancelOrderDto dto, CancellationToken ct)
+        public async Task<IActionResult> Cancel([FromForm] CancelOrderDto dto, CancellationToken ct)
         {
             var userIdClaim = User.FindFirst("userid")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!int.TryParse(userIdClaim, out var userId))

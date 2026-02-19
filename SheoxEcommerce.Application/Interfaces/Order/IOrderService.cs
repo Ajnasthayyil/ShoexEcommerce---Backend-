@@ -21,5 +21,5 @@ namespace ShoexEcommerce.Application.Interfaces.Order
              int orderId,
              OrderStatus status,
              CancellationToken ct = default);
-            }
+    }
 }

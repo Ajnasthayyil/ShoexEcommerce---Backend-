@@ -191,7 +191,7 @@ namespace ShoexEcommerce.Infrastructure.Services
                     SubTotal = total,
                     TotalAmount = total,
 
-                   
+
                     ShippingAddressId = address.Id
                 };
 

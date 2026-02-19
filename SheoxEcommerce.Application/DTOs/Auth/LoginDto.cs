@@ -7,7 +7,13 @@ namespace ShoexEcommerce.Application.DTOs.Auth
         [Required]
         public string Username { get; set; } = null!;
 
+        private string _password = string.Empty;
+
         [Required]
-        public string Password { get; set; } = null!;
+        public string Password
+        {
+            get => _password;
+            set => _password = value?.Trim() ?? string.Empty;
+        }
     }
 }

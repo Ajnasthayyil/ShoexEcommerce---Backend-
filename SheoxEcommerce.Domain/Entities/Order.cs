@@ -1,5 +1,5 @@
-﻿using ShoexEcommerce.Domain.Common;
-using ShoexEcommerce.Domain.Enums;
+﻿using ShoexEcommerce.Domain.Enums;
+using ShoexEcommerce.Domain.Common;
 
 namespace ShoexEcommerce.Domain.Entities
 {
@@ -15,9 +15,9 @@ namespace ShoexEcommerce.Domain.Entities
         public decimal TotalAmount { get; set; }
 
         public int? ShippingAddressId { get; set; }
-        public Address? ShippingAddress { get; set; }
+        public Address ShippingAddress { get; set; } = null!;
 
 
-        public List<OrderItem> Items { get; set; } = new();
+        public ICollection<OrderItem> Items { get; set; } = new List<OrderItem>();
     }
 }
