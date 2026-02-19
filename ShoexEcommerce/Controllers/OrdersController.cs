@@ -26,8 +26,8 @@ namespace ShoexEcommerce.API.Controllers
             return null;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> PlaceOrder([FromBody] PlaceOrderDto dto, CancellationToken ct)
+        [HttpPost("cart")]
+        public async Task<IActionResult> PlaceOrder([FromForm] PlaceOrderDto dto, CancellationToken ct)
         {
             var userId = GetUserId();
             if (userId == null) return Unauthorized();
@@ -37,7 +37,7 @@ namespace ShoexEcommerce.API.Controllers
         }
 
         [HttpPost("buy-now")]
-        public async Task<IActionResult> BuyNow([FromBody] BuyNowDto dto, CancellationToken ct)
+        public async Task<IActionResult> BuyNow([FromForm] BuyNowDto dto, CancellationToken ct)
         {
             var userId = GetUserId();
             if (userId == null) return Unauthorized();
@@ -46,7 +46,7 @@ namespace ShoexEcommerce.API.Controllers
             return StatusCode(res.StatusCode, res);
         }
 
-        [HttpGet("my")]
+        [HttpGet("my-orders")]
         public async Task<IActionResult> MyOrders(CancellationToken ct)
         {
             var userId = GetUserId();
@@ -54,6 +54,17 @@ namespace ShoexEcommerce.API.Controllers
 
             var res = await _orders.GetMyOrdersAsync(userId.Value, ct);
             return StatusCode(res.StatusCode, res);
+        }
+
+        [HttpPatch("cancel")]
+        public async Task<IActionResult> Cancel([FromBody] CancelOrderDto dto, CancellationToken ct)
+        {
+            var userIdClaim = User.FindFirst("userid")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out var userId))
+                return Unauthorized("Invalid token");
+
+            var result = await _orders.CancelMyOrderAsync(userId, dto, ct);
+            return StatusCode(result.StatusCode, result);
         }
 
         [HttpGet("{orderId:int}")]

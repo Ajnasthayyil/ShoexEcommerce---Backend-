@@ -17,7 +17,7 @@ namespace ShoexEcommerce.Infrastructure.Services
             _db = db;
         }
 
-       
+
         public async Task<ApiResponse<string>> PlaceOrderAsync(int userId, PlaceOrderDto dto, CancellationToken ct = default)
         {
             //  Validate user
@@ -28,7 +28,7 @@ namespace ShoexEcommerce.Infrastructure.Services
             //  Pick address: dto.AddressId OR default address
             Address? address = null;
 
-            
+
             if (dto.AddressId.HasValue && dto.AddressId.Value > 0)
             {
                 address = await _db.Addresses
@@ -77,7 +77,7 @@ namespace ShoexEcommerce.Infrastructure.Services
                     SubTotal = 0,
                     TotalAmount = 0,
 
-               
+
                     ShippingAddressId = address.Id
                 };
 
@@ -136,7 +136,7 @@ namespace ShoexEcommerce.Infrastructure.Services
             }
         }
 
-        
+
         public async Task<ApiResponse<string>> BuyNowAsync(int userId, BuyNowDto dto, CancellationToken ct = default)
         {
             var userExists = await _db.Users.AnyAsync(x => x.Id == userId && x.IsActive, ct);
@@ -231,38 +231,32 @@ namespace ShoexEcommerce.Infrastructure.Services
                 .Select(o => new OrderListDto
                 {
                     OrderId = o.Id,
-                    CustomerName = "",
+                    CustomerName = o.User != null ? o.User.FullName : "",  // optional
                     Status = o.Status.ToString(),
                     TotalAmount = o.TotalAmount,
                     CreatedOn = o.CreatedOn,
 
-                    ProductName = o.Items
+                    Items = o.Items
                         .OrderBy(i => i.Id)
-                        .Select(i => i.Product != null ? i.Product.Name : null)
-                        .FirstOrDefault(),
-
-                    Price = o.Items
-                        .OrderBy(i => i.Id)
-                        .Select(i => (decimal?)i.UnitPrice)
-                        .FirstOrDefault(),
-
-                    Quantity = o.Items
-                        .OrderBy(i => i.Id)
-                        .Select(i => (int?)i.Quantity)
-                        .FirstOrDefault(),
-
-                    Total = o.Items
-                        .OrderBy(i => i.Id)
-                        .Select(i => (decimal?)i.TotalPrice)
-                        .FirstOrDefault()
+                        .Select(i => new OrderListItemDto
+                        {
+                            ProductId = i.ProductId,
+                            ProductName = i.Product != null ? i.Product.Name : "",
+                            SizeId = i.SizeId,
+                            SizeName = i.Size != null ? i.Size.Name : "",
+                            Quantity = i.Quantity,
+                            UnitPrice = i.UnitPrice,
+                            TotalPrice = i.TotalPrice
+                        }).ToList()
                 })
                 .ToListAsync(ct);
 
             return ApiResponse<List<OrderListDto>>.Success(list, "My orders", 200);
         }
 
+
         //My Order Detail
-       
+
         public async Task<ApiResponse<OrderDetailDto>> GetMyOrderDetailAsync(int userId, int orderId, CancellationToken ct = default)
         {
             var order = await _db.Orders
@@ -301,6 +295,67 @@ namespace ShoexEcommerce.Infrastructure.Services
             return ApiResponse<OrderDetailDto>.Success(dto, "Order details", 200);
         }
 
+
+        public async Task<ApiResponse<string>> CancelMyOrderAsync(int userId, CancelOrderDto dto, CancellationToken ct = default)
+        {
+            // load order with items (needed to restore stock)
+            var order = await _db.Orders
+                .Include(o => o.Items)
+                .FirstOrDefaultAsync(o => o.Id == dto.OrderId && o.UserId == userId && o.IsActive, ct);
+
+            if (order == null)
+                return ApiResponse<string>.Fail("Order not found", 404);
+
+            // already cancelled
+            if (order.Status == OrderStatus.Cancelled)
+                return ApiResponse<string>.Fail("Order already cancelled", 409);
+
+            // cannot cancel after shipped/delivered
+            if (order.Status == OrderStatus.Shipped || order.Status == OrderStatus.Delivered)
+                return ApiResponse<string>.Fail("Order cannot be cancelled now", 409);
+
+            // only allow cancel for these statuses
+            var canCancel = order.Status == OrderStatus.Ordered
+                         || order.Status == OrderStatus.UnderProcess
+                         || order.Status == OrderStatus.Packed;
+
+            if (!canCancel)
+                return ApiResponse<string>.Fail("Order cannot be cancelled", 409);
+
+            await using var trx = await _db.Database.BeginTransactionAsync(ct);
+            try
+            {
+                // restore size-wise stock
+                foreach (var item in order.Items)
+                {
+                    var ps = await _db.ProductSizes
+                        .FirstOrDefaultAsync(x => x.ProductId == item.ProductId && x.SizeId == item.SizeId, ct);
+
+                    // if mapping missing, still continue (but normally shouldn't happen)
+                    if (ps != null)
+                        ps.Stock += item.Quantity;
+                }
+
+                // update status
+                order.Status = OrderStatus.Cancelled;
+                order.ModifiedOn = DateTime.UtcNow;
+
+                // OPTIONAL: if you have a column for cancel reason, set it here
+                // order.CancelReason = dto.Reason;
+
+                await _db.SaveChangesAsync(ct);
+                await trx.CommitAsync(ct);
+
+                return ApiResponse<string>.Success(null!, "Order cancelled successfully", 200);
+            }
+            catch
+            {
+                await trx.RollbackAsync(ct);
+                throw;
+            }
+        }
+
+
         // Admin -  Orders list
         public async Task<ApiResponse<List<OrderListDto>>> AdminGetOrdersAsync(CancellationToken ct = default)
         {
@@ -318,26 +373,18 @@ namespace ShoexEcommerce.Infrastructure.Services
                     TotalAmount = o.TotalAmount,
                     CreatedOn = o.CreatedOn,
 
-                    ProductName = o.Items
-                        .OrderBy(i => i.Id)
-                        .Select(i => i.Product != null ? i.Product.Name : null)
-                        .FirstOrDefault(),
-
-                    Price = o.Items
-                        .OrderBy(i => i.Id)
-                        .Select(i => (decimal?)i.UnitPrice)
-                        .FirstOrDefault(),
-
-                    Quantity = o.Items
-                        .OrderBy(i => i.Id)
-                        .Select(i => (int?)i.Quantity)
-                        .FirstOrDefault(),
-
-                    Total = o.Items
-                        .OrderBy(i => i.Id)
-                        .Select(i => (decimal?)i.TotalPrice)
-                        .FirstOrDefault()
+                    Items = o.Items.OrderBy(i => i.Id).Select(i => new OrderListItemDto
+                    {
+                        ProductId = i.ProductId,
+                        ProductName = i.Product != null ? i.Product.Name : "",
+                        SizeId = i.SizeId,
+                        SizeName = i.Size != null ? i.Size.Name : "",
+                        Quantity = i.Quantity,
+                        UnitPrice = i.UnitPrice,
+                        TotalPrice = i.TotalPrice
+                    }).ToList()
                 })
+
                 .ToListAsync(ct);
 
             return ApiResponse<List<OrderListDto>>.Success(list, "Orders", 200);
@@ -409,5 +456,7 @@ namespace ShoexEcommerce.Infrastructure.Services
 
             return ApiResponse<string>.Success(null, "Status updated", 200);
         }
+
+
     }
 }

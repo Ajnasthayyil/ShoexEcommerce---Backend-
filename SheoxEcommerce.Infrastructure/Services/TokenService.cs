@@ -51,7 +51,7 @@ namespace ShoexEcommerce.Infrastructure.Security
             return Convert.ToBase64String(bytes);
         }
 
- 
+
         public DateTime GetRefreshTokenExpiryUtc()
         {
             var daysStr = _config["Jwt:RefreshTokenDays"];

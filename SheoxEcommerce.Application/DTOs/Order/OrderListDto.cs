@@ -3,15 +3,22 @@
     public class OrderListDto
     {
         public int OrderId { get; set; }
-        public string CustomerName { get; set; } = null!;
-        public string Status { get; set; } = null!;
+        public string CustomerName { get; set; } = "";
+        public string Status { get; set; } = "";
         public decimal TotalAmount { get; set; }
         public DateTime CreatedOn { get; set; }
 
-        // for admin table 
-        public string? ProductName { get; set; }
-        public decimal? Price { get; set; }
-        public int? Quantity { get; set; }
-        public decimal? Total { get; set; }
+        public List<OrderListItemDto> Items { get; set; } = new();
+    }
+
+    public class OrderListItemDto
+    {
+        public int ProductId { get; set; }
+        public string ProductName { get; set; } = "";
+        public int SizeId { get; set; }
+        public string SizeName { get; set; } = "";
+        public int Quantity { get; set; }
+        public decimal UnitPrice { get; set; }
+        public decimal TotalPrice { get; set; }
     }
 }
