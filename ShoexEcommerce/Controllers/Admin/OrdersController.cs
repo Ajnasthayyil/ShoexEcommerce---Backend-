@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ShoexEcommerce.Application.DTOs.Order;          // UpdateOrderStatusDto
-using ShoexEcommerce.Application.Interfaces.Order;    // IOrderService
+using ShoexEcommerce.Application.DTOs.Order;           
+using ShoexEcommerce.Application.Interfaces.Order;    
 
 namespace ShoexEcommerce.API.Controllers.Admin
 {

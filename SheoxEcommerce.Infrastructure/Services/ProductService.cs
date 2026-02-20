@@ -22,9 +22,7 @@ namespace ShoexEcommerce.Infrastructure.Services
             _cloudinary = cloudinary;
         }
 
-        // =========================================================
-        // USER: Get all ACTIVE products (list view)
-        // =========================================================
+        // USER: Get all ACTIVE products 
         public async Task<ApiResponse<List<ProductListDto>>> GetActiveProductsAsync(CancellationToken ct = default)
         {
             var products = await _db.Products
@@ -52,9 +50,8 @@ namespace ShoexEcommerce.Infrastructure.Services
             return ApiResponse<List<ProductListDto>>.Success(dto, "Active products fetched");
         }
 
-        // =========================================================
-        // USER: Get ACTIVE product by id (details)
-        // =========================================================
+        // USER: Get ACTIVE product by id 
+       
         public async Task<ApiResponse<ProductDto>> GetActiveProductByIdAsync(int id, CancellationToken ct = default)
         {
             var p = await _db.Products
@@ -92,112 +89,9 @@ namespace ShoexEcommerce.Infrastructure.Services
             return ApiResponse<ProductDto>.Success(dto, "Product fetched");
         }
 
-        // =========================================================
-        // ADMIN: Create product (sizes + upload multiple images)
-        // =========================================================
-        //public async Task<ApiResponse<ProductDto>> CreateAsync(CreateProductDto dto, CancellationToken ct = default)
-        //{
-        //    // ---------- BASIC VALIDATIONS ----------
-        //    if (dto == null)
-        //        return ApiResponse<ProductDto>.Fail("Invalid request", 400);
 
-        //    dto.Name = dto.Name?.Trim() ?? "";
-
-        //    if (string.IsNullOrWhiteSpace(dto.Name))
-        //        return ApiResponse<ProductDto>.Fail("Name is required", 400);
-
-        //    if (!Regex.IsMatch(dto.Name, @"^[A-Za-z][A-Za-z0-9 ]*$"))
-        //        return ApiResponse<ProductDto>.Fail("Name must start with a letter and contain only letters, digits, and spaces", 400);
-
-        //    if (dto.Price <= 1)
-        //        return ApiResponse<ProductDto>.Fail("Price must be greater than 1", 400);
-
-        //    if (dto.Stock <= 1)
-        //        return ApiResponse<ProductDto>.Fail("Stock must be greater than 1", 400);
-
-        //    if (dto.Images == null || dto.Images.Count == 0)
-        //        return ApiResponse<ProductDto>.Fail("At least 1 image is required", 400);
-
-        //    if (dto.PrimaryImageIndex < 0 || dto.PrimaryImageIndex >= dto.Images.Count)
-        //        return ApiResponse<ProductDto>.Fail("Invalid PrimaryImageIndex", 400);
-
-        //    foreach (var img in dto.Images)
-        //    {
-        //        if (img?.Stream == null || img.Stream.Length == 0 || string.IsNullOrWhiteSpace(img.FileName))
-        //            return ApiResponse<ProductDto>.Fail("Invalid image file", 400);
-        //    }
-
-        //    var sizeIds = dto.SizeIds?.Distinct().ToList() ?? new List<int>();
-        //    if (sizeIds.Count == 0)
-        //        return ApiResponse<ProductDto>.Fail("At least 1 size is required", 400);
-
-        //    // ---------- DB VALIDATIONS ----------
-        //    var brandExists = await _db.Brands.AnyAsync(b => b.Id == dto.BrandId && b.IsActive, ct);
-        //    if (!brandExists) return ApiResponse<ProductDto>.Fail("Invalid BrandId", 400);
-
-        //    var genderExists = await _db.Genders.AnyAsync(g => g.Id == dto.GenderId && g.IsActive, ct);
-        //    if (!genderExists) return ApiResponse<ProductDto>.Fail("Invalid GenderId", 400);
-
-        //    var validSizeIds = await _db.Sizes
-        //        .Where(s => sizeIds.Contains(s.Id) && s.IsActive)
-        //        .Select(s => s.Id)
-        //        .ToListAsync(ct);
-
-        //    if (validSizeIds.Count != sizeIds.Count)
-        //        return ApiResponse<ProductDto>.Fail("Invalid SizeIds", 400);
-
-        //    // ---------- CREATE PRODUCT ----------
-        //    var product = new Product
-        //    {
-        //        Name = dto.Name,
-        //        Description = dto.Description?.Trim(),
-        //        Price = dto.Price,
-        //        //Stock = dto.Stock,
-        //        BrandId = dto.BrandId,
-        //        GenderId = dto.GenderId,
-        //        IsActive = true
-        //    };
-
-        //    _db.Products.Add(product);
-        //    await _db.SaveChangesAsync(ct);
-
-        //    // ---------- SIZES ----------
-        //    foreach (var sid in sizeIds)
-        //    {
-        //        _db.ProductSizes.Add(new ProductSize
-        //        {
-        //            ProductId = product.Id,
-        //            SizeId = sid
-        //        });
-        //    }
-
-        //    // ---------- IMAGES UPLOAD ----------
-        //    for (int i = 0; i < dto.Images.Count; i++)
-        //    {
-        //        var f = dto.Images[i];
-
-        //        var (url, publicId) = await _cloudinary.UploadAsync(
-        //            f.Stream,
-        //            f.FileName,
-        //            "shoex/products",
-        //            ct
-        //        );
-
-        //        _db.ProductImages.Add(new ProductImage
-        //        {
-        //            ProductId = product.Id,
-        //            Url = url,
-        //            PublicId = publicId
-        //        });
-        //    }
-
-        //    await _db.SaveChangesAsync(ct);
-
-        //    return await GetByIdAsync(product.Id, ct);
-        //}
         public async Task<ApiResponse<ProductDto>> CreateAsync(CreateProductDto dto, CancellationToken ct = default)
         {
-            // ---------- BASIC VALIDATIONS ----------
             if (dto == null)
                 return ApiResponse<ProductDto>.Fail("Invalid request", 400);
 
@@ -212,8 +106,8 @@ namespace ShoexEcommerce.Infrastructure.Services
             if (dto.Price <= 1)
                 return ApiResponse<ProductDto>.Fail("Price must be greater than 1", 400);
 
-            if (dto.Images == null || dto.Images.Count == 0)
-                return ApiResponse<ProductDto>.Fail("At least 1 image is required", 400);
+            if (dto.Images == null || dto.Images.Count < 3)
+                return ApiResponse<ProductDto>.Fail("At least 3 images are required", 400);
 
             if (dto.PrimaryImageIndex < 0 || dto.PrimaryImageIndex >= dto.Images.Count)
                 return ApiResponse<ProductDto>.Fail("Invalid PrimaryImageIndex", 400);
@@ -224,12 +118,11 @@ namespace ShoexEcommerce.Infrastructure.Services
                     return ApiResponse<ProductDto>.Fail("Invalid image file", 400);
             }
 
-            //  Sizes only (no stock in create)
+            // Sizes
             var sizeIds = dto.SizeIds?.Distinct().ToList() ?? new List<int>();
             if (sizeIds.Count == 0)
                 return ApiResponse<ProductDto>.Fail("At least 1 size is required", 400);
 
-            // ---------- DB VALIDATIONS ----------
             var brandExists = await _db.Brands.AnyAsync(b => b.Id == dto.BrandId && b.IsActive, ct);
             if (!brandExists) return ApiResponse<ProductDto>.Fail("Invalid BrandId", 400);
 
@@ -244,7 +137,12 @@ namespace ShoexEcommerce.Infrastructure.Services
             if (validSizeIds.Count != sizeIds.Count)
                 return ApiResponse<ProductDto>.Fail("Invalid SizeIds", 400);
 
-            // ---------- CREATE PRODUCT ----------
+            // ✅ NEW: Duplicate validation (Name + Brand + Gender + Sizes)
+            var isDuplicate = await ProductComboExistsAsync(dto.Name, dto.BrandId, dto.GenderId, sizeIds, null, ct);
+            if (isDuplicate)
+                return ApiResponse<ProductDto>.Fail(
+                    "Product already exists with same Name, Brand, Gender and Sizes.", 409);
+
             var product = new Product
             {
                 Name = dto.Name,
@@ -258,7 +156,6 @@ namespace ShoexEcommerce.Infrastructure.Services
             _db.Products.Add(product);
             await _db.SaveChangesAsync(ct);
 
-            // ---------- SIZES (stock default = 0) ----------
             foreach (var sid in sizeIds)
             {
                 _db.ProductSizes.Add(new ProductSize
@@ -269,7 +166,6 @@ namespace ShoexEcommerce.Infrastructure.Services
                 });
             }
 
-            // ---------- IMAGES UPLOAD ----------
             for (int i = 0; i < dto.Images.Count; i++)
             {
                 var f = dto.Images[i];
@@ -293,7 +189,7 @@ namespace ShoexEcommerce.Infrastructure.Services
 
             return await GetByIdAsync(product.Id, ct);
         }
-   
+
         // ADMIN: Get product by id (active/inactive)
         public async Task<ApiResponse<ProductDto>> GetByIdAsync(int id, CancellationToken ct = default)
         {
@@ -369,6 +265,17 @@ namespace ShoexEcommerce.Infrastructure.Services
             if (p == null)
                 return ApiResponse<ProductDto>.Fail("Product not found", 404);
 
+            dto.Name = dto.Name?.Trim() ?? "";
+
+            if (string.IsNullOrWhiteSpace(dto.Name))
+                return ApiResponse<ProductDto>.Fail("Name is required", 400);
+
+            if (!Regex.IsMatch(dto.Name, @"^[A-Za-z][A-Za-z0-9 ]*$"))
+                return ApiResponse<ProductDto>.Fail("Name must start with a letter and contain only letters, digits, and spaces", 400);
+
+            if (dto.Price <= 1)
+                return ApiResponse<ProductDto>.Fail("Price must be greater than 1", 400);
+
             // validate brand/gender
             var brandExists = await _db.Brands.AnyAsync(b => b.Id == dto.BrandId && b.IsActive, ct);
             if (!brandExists) return ApiResponse<ProductDto>.Fail("Invalid BrandId", 400);
@@ -389,23 +296,29 @@ namespace ShoexEcommerce.Infrastructure.Services
             if (validSizeIds.Count != sizeIds.Count)
                 return ApiResponse<ProductDto>.Fail("Invalid SizeIds", 400);
 
+            // ✅ NEW: Duplicate validation (ignore current product id)
+            var isDuplicate = await ProductComboExistsAsync(dto.Name, dto.BrandId, dto.GenderId, sizeIds, id, ct);
+            if (isDuplicate)
+                return ApiResponse<ProductDto>.Fail(
+                    "Another product already exists with same Name, Brand, Gender and Sizes.", 409);
+
             // update product fields
-            p.Name = dto.Name.Trim();
+            p.Name = dto.Name;
             p.Description = dto.Description?.Trim();
             p.Price = dto.Price;
             p.BrandId = dto.BrandId;
             p.GenderId = dto.GenderId;
 
-            //  update sizes WITHOUT losing stock
+            // update sizes WITHOUT losing stock
             var existing = await _db.ProductSizes
                 .Where(ps => ps.ProductId == id)
                 .ToListAsync(ct);
 
-            // remove sizes that are no longer selected
+            // remove sizes no longer selected
             var toRemove = existing.Where(x => !sizeIds.Contains(x.SizeId)).ToList();
             _db.ProductSizes.RemoveRange(toRemove);
 
-            // add new sizes (start stock at 0)
+            // add new sizes (stock starts 0)
             var existingSizeIds = existing.Select(x => x.SizeId).ToHashSet();
             var toAdd = sizeIds.Where(sid => !existingSizeIds.Contains(sid)).ToList();
 
@@ -419,7 +332,6 @@ namespace ShoexEcommerce.Infrastructure.Services
                 });
             }
 
-            // existing sizes remain untouched -> stock stays same
             await _db.SaveChangesAsync(ct);
 
             return await GetByIdAsync(id, ct);
@@ -438,7 +350,7 @@ namespace ShoexEcommerce.Infrastructure.Services
         }
 
        
-        // ADMIN: Soft delete (set inactive)
+        // ADMIN: Soft delete 
         public async Task<ApiResponse<string>> DeleteAsync(int id, CancellationToken ct = default)
         {
             var p = await _db.Products.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -471,7 +383,7 @@ namespace ShoexEcommerce.Infrastructure.Services
         }
 
 
-        // Adjust stock (+ / -) for a product size
+        // Adjust stock  for a product size
         public async Task<ApiResponse<string>> AdjustSizeStockAsync(
             int productId,
             int sizeId,
@@ -495,7 +407,7 @@ namespace ShoexEcommerce.Infrastructure.Services
         }
 
 
-        // ADMIN: Add multiple images (browser upload)
+        //Add multiple images 
         public async Task<ApiResponse<ProductDto>> AddImagesAsync(int productId, List<IFormFile> images, CancellationToken ct = default)
         {
             if (images == null || images.Count == 0)
@@ -530,7 +442,7 @@ namespace ShoexEcommerce.Infrastructure.Services
         }
 
 
-        // ADMIN: Delete ONE image (DB + Cloudinary)
+        // Delete ONE image 
         
         public async Task<ApiResponse<string>> DeleteImageAsync(int productId, int imageId, CancellationToken ct = default)
         {
@@ -554,6 +466,37 @@ namespace ShoexEcommerce.Infrastructure.Services
             return ApiResponse<string>.Success(null!, "Image deleted successfully");
         }
 
+        private async Task<bool> ProductComboExistsAsync(
+        string name,
+        int brandId,
+        int genderId,
+        List<int> sizeIds,
+        int? ignoreProductId = null,
+        CancellationToken ct = default)
+            {
+                var normalizedName = (name ?? "").Trim().ToLower();
+                var uniqueSizeIds = (sizeIds ?? new List<int>()).Distinct().ToList();
+
+                if (string.IsNullOrWhiteSpace(normalizedName) || uniqueSizeIds.Count == 0)
+                    return false;
+
+                var query = _db.Products
+                    .AsNoTracking()
+                    .Where(p => p.BrandId == brandId && p.GenderId == genderId)
+                    .Where(p => p.Name.Trim().ToLower() == normalizedName)
+                    .AsQueryable();
+
+           
+
+                if (ignoreProductId.HasValue)
+                    query = query.Where(p => p.Id != ignoreProductId.Value);
+
+                return await query.AnyAsync(p =>
+                    p.ProductSizes.Select(ps => ps.SizeId).Distinct().Count() == uniqueSizeIds.Count
+                    && p.ProductSizes.All(ps => uniqueSizeIds.Contains(ps.SizeId))
+                    && uniqueSizeIds.All(sid => p.ProductSizes.Any(ps => ps.SizeId == sid)),
+                    ct);
+            }
 
     }
 }

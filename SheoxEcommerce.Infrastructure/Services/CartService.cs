@@ -22,8 +22,7 @@ namespace ShoexEcommerce.Infrastructure.Services
             return ApiResponse<CartDto>.Success(await BuildCartDto(cart.Id, ct), "Cart fetched");
         }
 
-        // ✅ UPDATED based on AddToCartDto (no Quantity)
-        // Assumption: Each call adds 1 quantity
+       
         public async Task<ApiResponse<CartItemDto>> AddAsync(int userId, AddToCartDto dto, CancellationToken ct = default)
         {
             // validate product
@@ -39,7 +38,7 @@ namespace ShoexEcommerce.Infrastructure.Services
             if (!sizeExists)
                 return ApiResponse<CartItemDto>.Fail("Invalid SizeId", 400);
 
-            // size availability & stock (optional but good)
+            // size availability & stock 
             var ps = await _db.ProductSizes
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.ProductId == dto.ProductId && x.SizeId == dto.SizeId, ct);
@@ -52,7 +51,7 @@ namespace ShoexEcommerce.Infrastructure.Services
 
             var cart = await GetOrCreateCartAsync(userId, ct);
 
-            // ✅ check already exists
+            // check already exists
             var exists = await _db.CartItems.AnyAsync(i =>
                 i.CartId == cart.Id &&
                 i.ProductId == dto.ProductId &&
@@ -61,7 +60,7 @@ namespace ShoexEcommerce.Infrastructure.Services
             if (exists)
                 return ApiResponse<CartItemDto>.Fail("Warning: Product is already in cart", 409); // or 400
 
-            // ✅ add new item (Quantity default = 1)
+            // add new item (Quantity default = 1)
             var item = new CartItem
             {
                 CartId = cart.Id,
@@ -90,7 +89,7 @@ namespace ShoexEcommerce.Infrastructure.Services
             if (item == null)
                 return ApiResponse<CartItemDto>.Fail("Cart item not found", 404);
 
-            // ✅ size-stock check
+            // size-stock check
             var ps = await _db.ProductSizes
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.ProductId == item.ProductId && x.SizeId == item.SizeId, ct);
@@ -107,7 +106,7 @@ namespace ShoexEcommerce.Infrastructure.Services
             item.Quantity = dto.Quantity;
             await _db.SaveChangesAsync(ct);
 
-            // ✅ return only updated item
+            //  return only updated item
             var itemDto = await BuildCartItemDto(item.Id, ct);
             return ApiResponse<CartItemDto>.Success(itemDto, "Cart item updated", 200);
         }

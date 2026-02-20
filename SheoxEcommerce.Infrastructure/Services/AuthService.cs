@@ -29,7 +29,7 @@ namespace ShoexEcommerce.Infrastructure.Security
 
 
 
-        // Normalizers (null-safe)
+        // Normalizers 
 
         private static string NormalizeEmail(string? email)
             => (email ?? string.Empty).Trim().ToLowerInvariant();
@@ -102,9 +102,7 @@ namespace ShoexEcommerce.Infrastructure.Security
         }
 
 
-        // -------------------------
         // Login
-        // -------------------------
         public async Task<ApiResponse<LoginResponseDto>> LoginAsync(LoginDto dto)
         {
             var username = NormalizeUsername(dto.Username);
@@ -138,7 +136,7 @@ namespace ShoexEcommerce.Infrastructure.Security
 
             var data = new LoginResponseDto
             {
-                Message = "Login successful",
+                //Message = "Login successful",
                 AccessToken = accessToken,
                 RefreshToken = refreshToken
             };
@@ -146,9 +144,8 @@ namespace ShoexEcommerce.Infrastructure.Security
             return ApiResponse<LoginResponseDto>.Success(data, "Login successful", 200);
         }
 
-        // -------------------------
         // Profile
-        // -------------------------
+        
         public async Task<ProfileDto> GetProfileAsync(int userId)
         {
             var user = await _db.Users
@@ -171,9 +168,7 @@ namespace ShoexEcommerce.Infrastructure.Security
             };
         }
 
-        // -------------------------
         // Refresh Token
-        // -------------------------
         public async Task<ApiResponse<RefreshTokenResponseDto>> RefreshTokenAsync(string refreshToken)
         {
             if (string.IsNullOrWhiteSpace(refreshToken))
@@ -247,7 +242,7 @@ namespace ShoexEcommerce.Infrastructure.Security
             return ApiResponse<string>.Success(null, "Logged out successfully", 200);
         }
 
-        // Update Profile (NO duplicate checks)
+        // Update Profile 
 
         public async Task<ApiResponse<string>> UpdateMyProfileAsync(
             int userId,
@@ -393,7 +388,7 @@ namespace ShoexEcommerce.Infrastructure.Security
             if (otpRow == null)
                 return ApiResponse<string>.Fail("OTP not verified. Please verify OTP first.", 400);
 
-            //  Check OTP again (as you requested)
+            //  Check OTP again 
             if (otpRow.IsExpired())
                 return ApiResponse<string>.Fail("OTP expired. Please request again.", 400);
 

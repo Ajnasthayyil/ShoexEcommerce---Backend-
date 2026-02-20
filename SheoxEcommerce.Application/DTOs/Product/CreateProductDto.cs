@@ -29,13 +29,12 @@ namespace ShoexEcommerce.Application.DTOs.Product
         [Range(1, int.MaxValue, ErrorMessage = "GenderId must be valid")]
         public int GenderId { get; set; }
 
-        // ✅ Multiple sizes allowed (NO STOCK here)
         [Required(ErrorMessage = "At least one size is required")]
         [MinLength(1, ErrorMessage = "At least one size is required")]
         public List<int> SizeIds { get; set; } = new();
 
-        [Required(ErrorMessage = "At least one image is required")]
-        [MinLength(1, ErrorMessage = "At least one image is required")]
+        [Required(ErrorMessage = "At least 3 images are required")]
+        [MinLength(3, ErrorMessage = "At least 3 images are required")]
         public List<FileUpload> Images { get; set; } = new();
 
         [Range(0, int.MaxValue, ErrorMessage = "PrimaryImageIndex must be 0 or greater")]

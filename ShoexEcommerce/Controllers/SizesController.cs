@@ -17,7 +17,6 @@ namespace ShoexEcommerce.API.Controllers.Admin
             _service = service;
         }
 
-        // ✅ Add Size
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateSizeDto dto)
         {
@@ -25,7 +24,6 @@ namespace ShoexEcommerce.API.Controllers.Admin
             return StatusCode(result.StatusCode, result);
         }
 
-        // ✅ Get all sizes (admin only)
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -33,7 +31,6 @@ namespace ShoexEcommerce.API.Controllers.Admin
             return StatusCode(result.StatusCode, result);
         }
 
-        // ✅ Toggle active / inactive
         [HttpPatch("{id:int}/toggle")]
         public async Task<IActionResult> Toggle(int id)
         {

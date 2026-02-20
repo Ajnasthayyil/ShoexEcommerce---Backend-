@@ -67,41 +67,7 @@ namespace ShoexEcommerce.API.Controllers.Admin
             var result = await _service.CreateAsync(dto, ct);
             return StatusCode(result.StatusCode, result);
         }
-        //[HttpPost]
-        //[Consumes("multipart/form-data")]
-        //public async Task<IActionResult> Create([FromForm] CreateProductRequest form, CancellationToken ct)
-        //{
-        //    var uploads = new List<FileUpload>();
-
-        //    if (form.Images != null)
-        //    {
-        //        foreach (var file in form.Images)
-        //        {
-        //            if (file == null || file.Length == 0) continue;
-
-        //            var ms = new MemoryStream();
-        //            await file.CopyToAsync(ms, ct);
-        //            ms.Position = 0;
-        //            uploads.Add(new FileUpload(ms, file.FileName));
-        //        }
-        //    }
-        //    var dto = new CreateProductDto
-        //    {
-        //        Name = form.Name,
-        //        Price = form.Price,
-        //        Description = form.Description,
-        //        BrandId = form.BrandId,
-        //        GenderId = form.GenderId,
-
-        //        SizeIds = form.SizeIds,              
-        //        Images = uploads,
-        //        PrimaryImageIndex = form.PrimaryImageIndex
-
-        //    };
-
-        //    var result = await _service.CreateAsync(dto, ct);
-        //    return StatusCode(result.StatusCode, result);
-        //}
+        
 
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromForm] UpdateProductRequest req, CancellationToken ct)

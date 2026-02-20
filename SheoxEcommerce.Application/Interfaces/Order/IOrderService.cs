@@ -17,9 +17,6 @@ namespace ShoexEcommerce.Application.Interfaces.Order
         // Admin
         Task<ApiResponse<List<OrderListDto>>> AdminGetOrdersAsync(CancellationToken ct = default);
         Task<ApiResponse<OrderDetailDto>> AdminGetOrderDetailAsync(int orderId, CancellationToken ct = default);
-        Task<ApiResponse<string>> AdminUpdateStatusAsync(
-             int orderId,
-             OrderStatus status,
-             CancellationToken ct = default);
+        Task<ApiResponse<string>> AdminUpdateStatusAsync(int orderId,OrderStatus status,CancellationToken ct = default);
     }
 }

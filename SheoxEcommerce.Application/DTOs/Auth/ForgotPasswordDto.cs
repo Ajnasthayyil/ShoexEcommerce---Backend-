@@ -7,7 +7,6 @@ namespace ShoexEcommerce.Application.DTOs.Auth
         [Required, EmailAddress]
         public string Email { get; set; } = null!;
 
-        // optional, default email
         public string? Channel { get; set; } = "email";
     }
 }

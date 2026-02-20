@@ -27,10 +27,10 @@ namespace ShoexEcommerce.Infrastructure.Security
 
             var payload = new JwtPayload
             {
-                { "userid", user.Id },              // ✅ number
-                { "username", user.Username },      // string
-                { "roleid", user.RoleId },          // ✅ number
-                { ClaimTypes.Role, roleName },      // string
+                { "userid", user.Id },              
+                { "username", user.Username },      
+                { "roleid", user.RoleId },          
+                { ClaimTypes.Role, roleName },      
                 { JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString() },
                 { JwtRegisteredClaimNames.Iss, _config["Jwt:Issuer"] },
                 { JwtRegisteredClaimNames.Aud, _config["Jwt:Audience"] },
@@ -42,7 +42,7 @@ namespace ShoexEcommerce.Infrastructure.Security
         }
 
 
-        // ✅ Refresh token random string
+        // Refresh token random string
         public string GenerateRefreshToken()
         {
             var bytes = new byte[64];

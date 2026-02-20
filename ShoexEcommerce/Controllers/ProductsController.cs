@@ -13,17 +13,13 @@ namespace ShoexEcommerce.API.Controllers
         {
             _service = service;
         }
-
-        // only active products
-        [HttpGet]
+      [HttpGet]
         public async Task<IActionResult> GetActive(CancellationToken ct)
         {
             var result = await _service.GetActiveProductsAsync(ct);
             return StatusCode(result.StatusCode, result);
         }
-
-        // only active product by id
-        [HttpGet("{id:int}")]
+      [HttpGet("{id:int}")]
         public async Task<IActionResult> GetActiveById(int id, CancellationToken ct)
         {
             var result = await _service.GetActiveProductByIdAsync(id, ct);
