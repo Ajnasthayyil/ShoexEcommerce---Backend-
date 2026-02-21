@@ -22,17 +22,33 @@
 //using System.Text;
 //using System.Text.Json;
 
-
-
-
 //var builder = WebApplication.CreateBuilder(args);
 
-
+//// --------------------
 //// DbContext
+//// --------------------
+//builder.Services.AddDbContext<AppDbContext>(options =>
+//    options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
-//builder.Services.AddDbContext<AppDbContext>(options =>options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+//// If any service reads HttpContext (claims/cookies)
+//builder.Services.AddHttpContextAccessor();
 
-//// Services 
+//// --------------------
+//// CORS (✅ MUST be before builder.Build())
+//// Angular default dev URL: http://localhost:4200
+//// --------------------
+//builder.Services.AddCors(options =>
+//{
+//    options.AddPolicy("AllowAngular", b =>
+//        b.WithOrigins("http://localhost:4200")
+//         .AllowAnyHeader()
+//         .AllowAnyMethod()
+//    );
+//});
+
+//// --------------------
+//// Services
+//// --------------------
 //builder.Services.AddScoped<TokenService>();
 //builder.Services.AddScoped<IAuthService, AuthService>();
 //builder.Services.AddScoped<IBrandService, BrandService>();
@@ -42,18 +58,16 @@
 //builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 //builder.Services.AddScoped<ICartService, CartService>();
 //builder.Services.AddScoped<IWishlistService, WishlistService>();
+//builder.Services.AddScoped<ISmsService, SmsService>();
 //builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
-//builder.Services.AddScoped<IEmailService, EmailService>(); 
+//builder.Services.AddScoped<IEmailService, EmailService>();
 //builder.Services.AddScoped<IOrderService, OrderService>();
 //builder.Services.AddScoped<IAddressService, AddressService>();
 //builder.Services.AddScoped<IAdminUserService, AdminUserService>();
 
-
-
-
-
+//// --------------------
 //// Cloudinary
-
+//// --------------------
 //builder.Services.AddSingleton(sp =>
 //{
 //    var config = builder.Configuration.GetSection("Cloudinary");
@@ -67,9 +81,9 @@
 //    return new Cloudinary(account);
 //});
 
-
+//// --------------------
 //// JWT
-
+//// --------------------
 //var jwtKey = builder.Configuration["Jwt:Key"];
 //if (string.IsNullOrWhiteSpace(jwtKey))
 //    throw new Exception("Jwt:Key is missing in ShoexEcommerce.API appsettings.json");
@@ -85,8 +99,6 @@
 //            ValidateIssuerSigningKey = true,
 //            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
 //            RoleClaimType = ClaimTypes.Role,
-
-
 //            NameClaimType = ClaimTypes.NameIdentifier
 //        };
 
@@ -94,16 +106,16 @@
 //        {
 //            OnMessageReceived = context =>
 //            {
-//                // Cookie token
+//                // 1) Cookie token (if you use it)
 //                var token = context.Request.Cookies["access_token"];
 
-//                // Authorization header token
+//                // 2) Authorization header token (Angular interceptor uses this)
 //                if (string.IsNullOrWhiteSpace(token))
 //                {
 //                    var authHeader = context.Request.Headers["Authorization"].ToString();
 //                    if (!string.IsNullOrWhiteSpace(authHeader) && authHeader.StartsWith("Bearer "))
 //                    {
-//                        token = authHeader.Substring("Bearer ".Length).Trim();
+//                        token = authHeader["Bearer ".Length..].Trim();
 //                    }
 //                }
 
@@ -141,16 +153,15 @@
 
 //builder.Services.AddAuthorization();
 
-
+//// --------------------
 //// Controllers + Swagger
-
+//// --------------------
 //builder.Services.AddControllers();
 //builder.Services.AddEndpointsApiExplorer();
 
 //builder.Services.AddSwaggerGen(c =>
 //{
 //    c.SwaggerDoc("v1", new OpenApiInfo { Title = "ShoexEcommerce.API", Version = "v1" });
-
 
 //    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
 //    {
@@ -180,9 +191,9 @@
 
 //var app = builder.Build();
 
-
-//// Dev Middleware + Seeding
-
+//// --------------------
+//// Development + Seeding
+//// --------------------
 //if (app.Environment.IsDevelopment())
 //{
 //    app.UseDeveloperExceptionPage();
@@ -204,10 +215,10 @@
 //    }
 //}
 
-
-//// Middleware Order
-
+//// Middleware pipeline
 //app.UseHttpsRedirection();
+
+//app.UseCors("AllowAngular");
 
 //app.UseRouting();
 
@@ -218,9 +229,6 @@
 //app.MapControllers();
 
 //app.Run();
-
-
-
 using CloudinaryDotNet;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -244,8 +252,6 @@ using ShoexEcommerce.Infrastructure.Settings;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
-using ShoexEcommerce.Application.Interfaces.Media;
-using ShoexEcommerce.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -259,9 +265,22 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddHttpContextAccessor();
 
 // --------------------
+// CORS (MUST be before Build)
+// --------------------
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular", b =>
+        b.WithOrigins("http://localhost:4200")
+         .AllowAnyHeader()
+         .AllowAnyMethod()
+         .AllowCredentials() // ✅ IMPORTANT for cookies
+    );
+});
+
+// --------------------
 // Services
 // --------------------
-builder.Services.AddScoped<TokenService>();              // ✅ no ITokenService in your project
+builder.Services.AddScoped<TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IBrandService, BrandService>();
 builder.Services.AddScoped<IGenderService, GenderService>();
@@ -273,7 +292,6 @@ builder.Services.AddScoped<IWishlistService, WishlistService>();
 builder.Services.AddScoped<ISmsService, SmsService>();
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
 builder.Services.AddScoped<IEmailService, EmailService>();
-
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IAdminUserService, AdminUserService>();
@@ -319,17 +337,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnMessageReceived = context =>
             {
-                // Cookie token
+                // 1) Cookie token
                 var token = context.Request.Cookies["access_token"];
 
-                // Authorization header token
+                // 2) Authorization header token
                 if (string.IsNullOrWhiteSpace(token))
                 {
                     var authHeader = context.Request.Headers["Authorization"].ToString();
                     if (!string.IsNullOrWhiteSpace(authHeader) && authHeader.StartsWith("Bearer "))
-                    {
-                        token = authHeader.Substring("Bearer ".Length).Trim();
-                    }
+                        token = authHeader["Bearer ".Length..].Trim();
                 }
 
                 context.Token = token;
@@ -339,7 +355,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             OnChallenge = context =>
             {
                 context.HandleResponse();
-
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 context.Response.ContentType = "application/json";
 
@@ -405,12 +420,11 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // --------------------
-// Dev + Seeding
+// Development + Seeding
 // --------------------
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
-
     app.UseSwagger();
     app.UseSwaggerUI();
 
@@ -428,13 +442,10 @@ if (app.Environment.IsDevelopment())
     }
 }
 
-// --------------------
-// Middleware
-// --------------------
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHttpsRedirection();
-}
+app.UseHttpsRedirection();
+
+// ✅ CORS must be before auth
+app.UseCors("AllowAngular");
 
 app.UseRouting();
 
@@ -443,5 +454,4 @@ app.UseMiddleware<BlockedUserMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();
-
 app.Run();
