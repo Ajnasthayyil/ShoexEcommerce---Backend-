@@ -137,11 +137,11 @@ namespace ShoexEcommerce.Infrastructure.Services
             if (validSizeIds.Count != sizeIds.Count)
                 return ApiResponse<ProductDto>.Fail("Invalid SizeIds", 400);
 
-            // ✅ NEW: Duplicate validation (Name + Brand + Gender + Sizes)
-            var isDuplicate = await ProductComboExistsAsync(dto.Name, dto.BrandId, dto.GenderId, sizeIds, null, ct);
+            // ✅ NEW: Duplicate validation (Name + Brand + Gender)
+            var isDuplicate = await ProductComboExistsAsync(dto.Name, dto.BrandId, dto.GenderId, null, ct);
             if (isDuplicate)
                 return ApiResponse<ProductDto>.Fail(
-                    "Product already exists with same Name, Brand, Gender and Sizes.", 409);
+                    "Product already exists with same Name, Brand, and Gender.", 409);
 
             var product = new Product
             {
@@ -217,6 +217,7 @@ namespace ShoexEcommerce.Infrastructure.Services
                 BrandName = p.Brand?.Name ?? "",
                 GenderName = p.Gender?.Name ?? "",
                 SizeIds = p.ProductSizes.Select(s => s.SizeId).ToList(),
+                SizeStocks = p.ProductSizes.ToDictionary(s => s.SizeId, s => s.Stock),
                 Images = p.Images.Select(i => new ProductImageDto
                 {
                     Id = i.Id,
@@ -252,6 +253,7 @@ namespace ShoexEcommerce.Infrastructure.Services
                 BrandName = p.Brand?.Name ?? "",
                 GenderName = p.Gender?.Name ?? "",
                 SizeIds = p.ProductSizes.Select(s => s.SizeId).ToList(),
+                SizeStocks = p.ProductSizes.ToDictionary(s => s.SizeId, s => s.Stock),
                 Images = p.Images.Select(i => new ProductImageDto { Id = i.Id, Url = i.Url }).ToList()
             }).ToList();
 
@@ -297,10 +299,10 @@ namespace ShoexEcommerce.Infrastructure.Services
                 return ApiResponse<ProductDto>.Fail("Invalid SizeIds", 400);
 
             // ✅ NEW: Duplicate validation (ignore current product id)
-            var isDuplicate = await ProductComboExistsAsync(dto.Name, dto.BrandId, dto.GenderId, sizeIds, id, ct);
+            var isDuplicate = await ProductComboExistsAsync(dto.Name, dto.BrandId, dto.GenderId, id, ct);
             if (isDuplicate)
                 return ApiResponse<ProductDto>.Fail(
-                    "Another product already exists with same Name, Brand, Gender and Sizes.", 409);
+                    "Another product already exists with same Name, Brand, and Gender.", 409);
 
             // update product fields
             p.Name = dto.Name;
@@ -470,14 +472,12 @@ namespace ShoexEcommerce.Infrastructure.Services
         string name,
         int brandId,
         int genderId,
-        List<int> sizeIds,
         int? ignoreProductId = null,
         CancellationToken ct = default)
             {
                 var normalizedName = (name ?? "").Trim().ToLower();
-                var uniqueSizeIds = (sizeIds ?? new List<int>()).Distinct().ToList();
 
-                if (string.IsNullOrWhiteSpace(normalizedName) || uniqueSizeIds.Count == 0)
+                if (string.IsNullOrWhiteSpace(normalizedName))
                     return false;
 
                 var query = _db.Products
@@ -486,16 +486,10 @@ namespace ShoexEcommerce.Infrastructure.Services
                     .Where(p => p.Name.Trim().ToLower() == normalizedName)
                     .AsQueryable();
 
-           
-
                 if (ignoreProductId.HasValue)
                     query = query.Where(p => p.Id != ignoreProductId.Value);
 
-                return await query.AnyAsync(p =>
-                    p.ProductSizes.Select(ps => ps.SizeId).Distinct().Count() == uniqueSizeIds.Count
-                    && p.ProductSizes.All(ps => uniqueSizeIds.Contains(ps.SizeId))
-                    && uniqueSizeIds.All(sid => p.ProductSizes.Any(ps => ps.SizeId == sid)),
-                    ct);
+                return await query.AnyAsync(ct);
             }
 
     }

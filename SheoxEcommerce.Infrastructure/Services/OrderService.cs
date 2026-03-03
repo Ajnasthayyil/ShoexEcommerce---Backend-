@@ -231,6 +231,7 @@ namespace ShoexEcommerce.Infrastructure.Services
                 .Select(o => new OrderListDto
                 {
                     OrderId = o.Id,
+                    UserId = o.UserId,
                     CustomerName = o.User != null ? o.User.FullName : "",  // optional
                     Status = o.Status.ToString(),
                     TotalAmount = o.TotalAmount,
@@ -242,6 +243,7 @@ namespace ShoexEcommerce.Infrastructure.Services
                         {
                             ProductId = i.ProductId,
                             ProductName = i.Product != null ? i.Product.Name : "",
+                            ProductImageUrl = i.Product != null && i.Product.Images.Any() ? i.Product.Images.First().Url : "",
                             SizeId = i.SizeId,
                             SizeName = i.Size != null ? i.Size.Name : "",
                             Quantity = i.Quantity,
@@ -368,6 +370,7 @@ namespace ShoexEcommerce.Infrastructure.Services
                 .Select(o => new OrderListDto
                 {
                     OrderId = o.Id,
+                    UserId = o.UserId,
                     CustomerName = o.User != null ? o.User.FullName : "",
                     Status = o.Status.ToString(),
                     TotalAmount = o.TotalAmount,
@@ -377,6 +380,7 @@ namespace ShoexEcommerce.Infrastructure.Services
                     {
                         ProductId = i.ProductId,
                         ProductName = i.Product != null ? i.Product.Name : "",
+                        ProductImageUrl = i.Product != null && i.Product.Images.Any() ? i.Product.Images.First().Url : "",
                         SizeId = i.SizeId,
                         SizeName = i.Size != null ? i.Size.Name : "",
                         Quantity = i.Quantity,

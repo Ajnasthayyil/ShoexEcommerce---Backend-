@@ -114,7 +114,6 @@ namespace ShoexEcommerce.API.Controllers.Admin
             return StatusCode(result.StatusCode, result);
         }
 
-
         [HttpPatch("{productId:int}/sizes/{sizeId:int}/stock")]
         public async Task<IActionResult> AdjustSizeStock(
             int productId,
@@ -125,8 +124,6 @@ namespace ShoexEcommerce.API.Controllers.Admin
             var result = await _service.AdjustSizeStockAsync(productId, sizeId, dto, ct);
             return StatusCode(result.StatusCode, result);
         }
-
-        
 
         // IMAGES
         [HttpPost("{id:int}/images")]

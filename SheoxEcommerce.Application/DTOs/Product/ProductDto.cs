@@ -19,6 +19,7 @@ namespace ShoexEcommerce.Application.DTOs.Product
         public bool IsActive { get; set; }
 
         public List<int> SizeIds { get; set; } = new();
+        public Dictionary<int, int> SizeStocks { get; set; } = new();
         public List<ProductImageDto> Images { get; set; } = new();
     }
 }

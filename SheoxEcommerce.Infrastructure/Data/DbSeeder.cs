@@ -29,12 +29,12 @@ namespace ShoexEcommerce.Infrastructure.Data
             const string adminEmail = "admin123@gmail.com";
             const string adminMobile = "9878961243";
 
-            var adminExists = await context.Users.AnyAsync(u =>
+            var adminUser = await context.Users.FirstOrDefaultAsync(u =>
                 u.Username == adminUsername ||
                 u.Email == adminEmail ||
                 u.MobileNumber == adminMobile);
 
-            if (!adminExists)
+            if (adminUser == null)
             {
                 context.Users.Add(new User
                 {
@@ -47,6 +47,13 @@ namespace ShoexEcommerce.Infrastructure.Data
                     IsActive = true
                 });
 
+                await context.SaveChangesAsync();
+            }
+            else if (!adminUser.IsActive || adminUser.IsBlocked)
+            {
+                // Un-delete / Un-block the system administrator if it was altered
+                adminUser.IsActive = true;
+                adminUser.IsBlocked = false;
                 await context.SaveChangesAsync();
             }
 

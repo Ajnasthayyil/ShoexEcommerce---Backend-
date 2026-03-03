@@ -131,6 +131,21 @@ namespace ShoexEcommerce.API.Controllers
             return StatusCode(res.StatusCode, res);
         }
 
+        //    [HttpPost("logout")]
+        //    public async Task<IActionResult> Logout()
+        //    {
+        //        var refreshToken = Request.Cookies["refresh_token"];
+        //        if (string.IsNullOrWhiteSpace(refreshToken))
+        //            return Unauthorized(ApiResponse<string>.Fail("Refresh token missing", 401));
+
+        //        var result = await _auth.LogoutAsync(refreshToken);
+
+        //        Response.Cookies.Delete("access_token");
+        //        Response.Cookies.Delete("refresh_token");
+
+        //        return StatusCode(result.StatusCode, result);
+        //    }
+        //}
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
@@ -140,10 +155,19 @@ namespace ShoexEcommerce.API.Controllers
 
             var result = await _auth.LogoutAsync(refreshToken);
 
-            Response.Cookies.Delete("access_token");
-            Response.Cookies.Delete("refresh_token");
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,              // must match how you set cookie
+                SameSite = SameSiteMode.None, // must match
+                Path = "/"                  // must match
+                                            // Domain = "localhost"      // only if you set Domain while creating cookies
+            };
+
+            Response.Cookies.Delete("access_token", cookieOptions);
+            Response.Cookies.Delete("refresh_token", cookieOptions);
 
             return StatusCode(result.StatusCode, result);
         }
     }
-}
+    }

@@ -3,6 +3,7 @@
     public class OrderListDto
     {
         public int OrderId { get; set; }
+        public int UserId { get; set; }
         public string CustomerName { get; set; } = "";
         public string Status { get; set; } = "";
         public decimal TotalAmount { get; set; }
@@ -15,6 +16,7 @@
     {
         public int ProductId { get; set; }
         public string ProductName { get; set; } = "";
+        public string ProductImageUrl { get; set; } = "";
         public int SizeId { get; set; }
         public string SizeName { get; set; } = "";
         public int Quantity { get; set; }

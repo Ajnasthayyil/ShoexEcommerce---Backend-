@@ -168,6 +168,26 @@ namespace ShoexEcommerce.Infrastructure.Security
             };
         }
 
+        // Update Profile 
+
+        public async Task<ApiResponse<string>> UpdateMyProfileAsync(
+            int userId,
+            UpdateProfileDto dto,
+            CancellationToken ct = default)
+        {
+            var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == userId, ct);
+            if (user == null)
+                return ApiResponse<string>.Fail("User not found", 404);
+
+            user.FullName = NormalizeFullName(dto.FullName);
+            user.Email = NormalizeEmail(dto.Email);
+            user.MobileNumber = NormalizeMobile(dto.MobileNumber);
+
+            await _db.SaveChangesAsync(ct);
+
+            return ApiResponse<string>.Success(null, "Profile updated successfully", 200);
+        }
+
         // Refresh Token
         public async Task<ApiResponse<RefreshTokenResponseDto>> RefreshTokenAsync(string refreshToken)
         {
@@ -242,25 +262,7 @@ namespace ShoexEcommerce.Infrastructure.Security
             return ApiResponse<string>.Success(null, "Logged out successfully", 200);
         }
 
-        // Update Profile 
-
-        public async Task<ApiResponse<string>> UpdateMyProfileAsync(
-            int userId,
-            UpdateProfileDto dto,
-            CancellationToken ct = default)
-        {
-            var user = await _db.Users.FirstOrDefaultAsync(x => x.Id == userId, ct);
-            if (user == null)
-                return ApiResponse<string>.Fail("User not found", 404);
-
-            user.FullName = NormalizeFullName(dto.FullName);
-            user.Email = NormalizeEmail(dto.Email);
-            user.MobileNumber = NormalizeMobile(dto.MobileNumber);
-
-            await _db.SaveChangesAsync(ct);
-
-            return ApiResponse<string>.Success(null, "Profile updated successfully", 200);
-        }
+        
 
         public async Task<ApiResponse<string>> ForgotPasswordAsync(ForgotPasswordDto dto, CancellationToken ct)
         {
