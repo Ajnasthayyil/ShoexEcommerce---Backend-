@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using SheoxEcommerce.Application.DTOs.Size;
 
 namespace ShoexEcommerce.Application.DTOs.Product
 {
@@ -19,6 +20,7 @@ namespace ShoexEcommerce.Application.DTOs.Product
         public bool IsActive { get; set; }
 
         public List<int> SizeIds { get; set; } = new();
+        public List<SizeDto> Sizes { get; set; } = new();
         public Dictionary<int, int> SizeStocks { get; set; } = new();
         public List<ProductImageDto> Images { get; set; } = new();
     }

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ShoexEcommerce.Application.Common;
 using ShoexEcommerce.Application.DTOs.Product;
 using ShoexEcommerce.Application.DTOs.Products;
+using SheoxEcommerce.Application.DTOs.Size;
 using ShoexEcommerce.Application.Interfaces.Media;
 using ShoexEcommerce.Application.Interfaces.Product;
 using ShoexEcommerce.Domain.Entities;
@@ -61,6 +62,7 @@ namespace ShoexEcommerce.Infrastructure.Services
                 .Include(x => x.Gender)
                 .Include(x => x.Images)
                 .Include(x => x.ProductSizes)
+                    .ThenInclude(ps => ps.Size)
                 .FirstOrDefaultAsync(ct);
 
             if (p == null)
@@ -79,6 +81,12 @@ namespace ShoexEcommerce.Infrastructure.Services
                 GenderName = p.Gender?.Name ?? "",
                 IsActive = p.IsActive,
                 SizeIds = p.ProductSizes.Select(s => s.SizeId).ToList(),
+                Sizes = p.ProductSizes.Select(ps => new SizeDto
+                {
+                    Id = ps.SizeId,
+                    Name = ps.Size?.Name ?? "",
+                    IsActive = ps.Size?.IsActive ?? true
+                }).ToList(),
                 Images = p.Images.Select(i => new ProductImageDto
                 {
                     Id = i.Id,
@@ -199,6 +207,7 @@ namespace ShoexEcommerce.Infrastructure.Services
                 .Include(x => x.Gender)
                 .Include(x => x.Images)
                 .Include(x => x.ProductSizes)
+                    .ThenInclude(ps => ps.Size)
                 .FirstOrDefaultAsync(x => x.Id == id, ct);
 
             if (p == null)
@@ -217,6 +226,12 @@ namespace ShoexEcommerce.Infrastructure.Services
                 BrandName = p.Brand?.Name ?? "",
                 GenderName = p.Gender?.Name ?? "",
                 SizeIds = p.ProductSizes.Select(s => s.SizeId).ToList(),
+                Sizes = p.ProductSizes.Select(ps => new SizeDto
+                {
+                    Id = ps.SizeId,
+                    Name = ps.Size?.Name ?? "",
+                    IsActive = ps.Size?.IsActive ?? true
+                }).ToList(),
                 SizeStocks = p.ProductSizes.ToDictionary(s => s.SizeId, s => s.Stock),
                 Images = p.Images.Select(i => new ProductImageDto
                 {
@@ -237,6 +252,7 @@ namespace ShoexEcommerce.Infrastructure.Services
                 .Include(x => x.Gender)
                 .Include(x => x.Images)
                 .Include(x => x.ProductSizes)
+                    .ThenInclude(ps => ps.Size)
                 .OrderByDescending(x => x.Id)
                 .ToListAsync(ct);
 
@@ -253,6 +269,12 @@ namespace ShoexEcommerce.Infrastructure.Services
                 BrandName = p.Brand?.Name ?? "",
                 GenderName = p.Gender?.Name ?? "",
                 SizeIds = p.ProductSizes.Select(s => s.SizeId).ToList(),
+                Sizes = p.ProductSizes.Select(ps => new SizeDto
+                {
+                    Id = ps.SizeId,
+                    Name = ps.Size?.Name ?? "",
+                    IsActive = ps.Size?.IsActive ?? true
+                }).ToList(),
                 SizeStocks = p.ProductSizes.ToDictionary(s => s.SizeId, s => s.Stock),
                 Images = p.Images.Select(i => new ProductImageDto { Id = i.Id, Url = i.Url }).ToList()
             }).ToList();
@@ -298,11 +320,7 @@ namespace ShoexEcommerce.Infrastructure.Services
             if (validSizeIds.Count != sizeIds.Count)
                 return ApiResponse<ProductDto>.Fail("Invalid SizeIds", 400);
 
-            // ✅ NEW: Duplicate validation (ignore current product id)
-            var isDuplicate = await ProductComboExistsAsync(dto.Name, dto.BrandId, dto.GenderId, id, ct);
-            if (isDuplicate)
-                return ApiResponse<ProductDto>.Fail(
-                    "Another product already exists with same Name, Brand, and Gender.", 409);
+            // Duplicate validation removed per user request for Edit mode
 
             // update product fields
             p.Name = dto.Name;

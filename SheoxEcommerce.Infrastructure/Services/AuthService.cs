@@ -27,8 +27,6 @@ namespace ShoexEcommerce.Infrastructure.Security
             _sms = sms;
         }
 
-
-
         // Normalizers 
 
         private static string NormalizeEmail(string? email)
@@ -53,6 +51,7 @@ namespace ShoexEcommerce.Infrastructure.Security
 
             return string.IsNullOrWhiteSpace(roleName) ? "User" : roleName!;
         }
+
         //register 
         public async Task<ApiResponse<string>> RegisterAsync(RegisterDto dto)
         {
@@ -114,6 +113,9 @@ namespace ShoexEcommerce.Infrastructure.Security
             if (user == null)
                 return ApiResponse<LoginResponseDto>.Fail("Invalid username or password", 401);
 
+            if (user.IsBlocked)
+                return ApiResponse<LoginResponseDto>.Fail("Your account has been blocked. Please contact support.", 403);
+
             var ok = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
             if (!ok)
                 return ApiResponse<LoginResponseDto>.Fail("Invalid username or password", 401);
@@ -163,6 +165,7 @@ namespace ShoexEcommerce.Infrastructure.Security
                 Email = user.Email,
                 MobileNumber = user.MobileNumber,
                 RoleId = user.RoleId,
+                IsBlocked = user.IsBlocked,
                 IsActive = user.IsActive,
                 CreatedOn = user.CreatedOn
             };
