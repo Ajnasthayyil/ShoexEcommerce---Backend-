@@ -241,20 +241,8 @@ else
         {
             context.Response.StatusCode = 500;
             context.Response.ContentType = "application/json";
-            
-            var exceptionHandlerPathFeature = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerPathFeature>();
-            var exception = exceptionHandlerPathFeature?.Error;
-            var errorMessage = exception != null 
-                ? $"{exception.GetType().Name}: {exception.Message}\nStack Trace:\n{exception.StackTrace}" 
-                : "An unexpected error occurred. Please try again later.";
-            
-            if (exception?.InnerException != null)
-            {
-                errorMessage += $"\nInner Exception: {exception.InnerException.GetType().Name}: {exception.InnerException.Message}\nStack Trace:\n{exception.InnerException.StackTrace}";
-            }
-            
             var payload = JsonSerializer.Serialize(
-                ApiResponse<string>.Fail(errorMessage, 500));
+                ApiResponse<string>.Fail("An unexpected error occurred. Please try again later.", 500));
             await context.Response.WriteAsync(payload);
         });
     });
@@ -291,7 +279,6 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        Diagnostics.StartupException = ex;
         Console.WriteLine("SEED ERROR:");
         Console.WriteLine(ex.ToString());
     }
@@ -306,45 +293,8 @@ app.MapGet("/", () =>
     return Results.Redirect("/swagger");
 });
 
-app.MapGet("/db-status", async (AppDbContext db) =>
-{
-    if (Diagnostics.StartupException != null)
-    {
-        return Results.Problem(
-            detail: Diagnostics.StartupException.ToString(),
-            statusCode: 500,
-            title: "Database Seeding/Migration Failed");
-    }
-
-    try
-    {
-        var canConnect = await db.Database.CanConnectAsync();
-        var pendingMigrations = await db.Database.GetPendingMigrationsAsync();
-        var appliedMigrations = await db.Database.GetAppliedMigrationsAsync();
-
-        return Results.Ok(new
-        {
-            CanConnect = canConnect,
-            PendingMigrations = pendingMigrations,
-            AppliedMigrations = appliedMigrations
-        });
-    }
-    catch (Exception ex)
-    {
-        return Results.Problem(
-            detail: ex.ToString(),
-            statusCode: 500,
-            title: "Database Access Error");
-    }
-});
-
 app.MapControllers();
 
 #endregion
 
 app.Run();
-
-public static class Diagnostics
-{
-    public static Exception? StartupException { get; set; }
-}
