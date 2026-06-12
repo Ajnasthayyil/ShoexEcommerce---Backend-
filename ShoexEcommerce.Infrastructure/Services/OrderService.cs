@@ -257,54 +257,55 @@ namespace ShoexEcommerce.Infrastructure.Services
         // ----------------------------------------------------
         public async Task<ApiResponse<List<OrderListDto>>> GetMyOrdersAsync(int userId, CancellationToken ct = default)
         {
-            var list = await _db.Orders
+            var orders = await _db.Orders
                 .AsNoTracking()
+                .Include(o => o.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Images)
+                .Include(o => o.Items).ThenInclude(i => i.Size)
                 .Where(o => o.UserId == userId && o.IsActive)
                 .OrderByDescending(o => o.CreatedOn)
-                .Select(o => new OrderListDto
-                {
-                    OrderId = o.Id,
-                    CustomerName = "",
-                    Status = o.Status.ToString(),
-                    TotalAmount = o.TotalAmount,
-                    CreatedOn = o.CreatedOn,
-                    PaymentMethod = o.PaymentMethod,
-
-                    ProductName = o.Items
-                        .OrderBy(i => i.Id)
-                        .Select(i => i.Product != null ? i.Product.Name : null)
-                        .FirstOrDefault(),
-
-                    Price = o.Items
-                        .OrderBy(i => i.Id)
-                        .Select(i => (decimal?)i.UnitPrice)
-                        .FirstOrDefault(),
-
-                    Quantity = o.Items
-                        .OrderBy(i => i.Id)
-                        .Select(i => (int?)i.Quantity)
-                        .FirstOrDefault(),
-
-                    Total = o.Items
-                        .OrderBy(i => i.Id)
-                        .Select(i => (decimal?)i.TotalPrice)
-                        .FirstOrDefault(),
-
-                    Items = o.Items.Select(i => new OrderListDto.OrderItemDto
-                    {
-                        ProductId = i.ProductId,
-                        ProductName = i.Product != null ? i.Product.Name : "",
-                        ProductImageUrl = (i.Product != null && i.Product.Images.OrderBy(img => img.Id).Select(img => img.Url).FirstOrDefault() != null)
-                            ? i.Product.Images.OrderBy(img => img.Id).Select(img => img.Url).FirstOrDefault()!
-                            : "",
-                        SizeId = i.SizeId,
-                        SizeName = i.Size != null ? i.Size.Name : "",
-                        Quantity = i.Quantity,
-                        UnitPrice = i.UnitPrice,
-                        TotalPrice = i.TotalPrice
-                    }).ToList()
-                })
                 .ToListAsync(ct);
+
+            var list = orders.Select(o => new OrderListDto
+            {
+                OrderId = o.Id,
+                CustomerName = "",
+                Status = o.Status.ToString(),
+                TotalAmount = o.TotalAmount,
+                CreatedOn = o.CreatedOn,
+                PaymentMethod = o.PaymentMethod,
+
+                ProductName = o.Items
+                    .OrderBy(i => i.Id)
+                    .Select(i => i.Product?.Name)
+                    .FirstOrDefault(),
+
+                Price = o.Items
+                    .OrderBy(i => i.Id)
+                    .Select(i => (decimal?)i.UnitPrice)
+                    .FirstOrDefault(),
+
+                Quantity = o.Items
+                    .OrderBy(i => i.Id)
+                    .Select(i => (int?)i.Quantity)
+                    .FirstOrDefault(),
+
+                Total = o.Items
+                    .OrderBy(i => i.Id)
+                    .Select(i => (decimal?)i.TotalPrice)
+                    .FirstOrDefault(),
+
+                Items = o.Items.Select(i => new OrderListDto.OrderItemDto
+                {
+                    ProductId = i.ProductId,
+                    ProductName = i.Product?.Name ?? "",
+                    ProductImageUrl = i.Product?.Images.OrderBy(img => img.Id).Select(img => img.Url).FirstOrDefault() ?? "",
+                    SizeId = i.SizeId,
+                    SizeName = i.Size?.Name ?? "",
+                    Quantity = i.Quantity,
+                    UnitPrice = i.UnitPrice,
+                    TotalPrice = i.TotalPrice
+                }).ToList()
+            }).ToList();
 
             return ApiResponse<List<OrderListDto>>.Success(list, "My orders", 200);
         }
@@ -353,41 +354,42 @@ namespace ShoexEcommerce.Infrastructure.Services
         // ADMIN: Orders list
         public async Task<ApiResponse<List<OrderListDto>>> AdminGetOrdersAsync(CancellationToken ct = default)
         {
-            var list = await _db.Orders
+            var orders = await _db.Orders
                 .AsNoTracking()
                 .Where(o => o.IsActive)
                 .Include(o => o.User)
                 .Include(o => o.Items).ThenInclude(i => i.Product)
                 .OrderByDescending(o => o.CreatedOn)
-                .Select(o => new OrderListDto
-                {
-                    OrderId = o.Id,
-                    CustomerName = o.User != null ? o.User.FullName : "",
-                    Status = o.Status.ToString(),
-                    TotalAmount = o.TotalAmount,
-                    CreatedOn = o.CreatedOn,
-
-                    ProductName = o.Items
-                        .OrderBy(i => i.Id)
-                        .Select(i => i.Product != null ? i.Product.Name : null)
-                        .FirstOrDefault(),
-
-                    Price = o.Items
-                        .OrderBy(i => i.Id)
-                        .Select(i => (decimal?)i.UnitPrice)
-                        .FirstOrDefault(),
-
-                    Quantity = o.Items
-                        .OrderBy(i => i.Id)
-                        .Select(i => (int?)i.Quantity)
-                        .FirstOrDefault(),
-
-                    Total = o.Items
-                        .OrderBy(i => i.Id)
-                        .Select(i => (decimal?)i.TotalPrice)
-                        .FirstOrDefault()
-                })
                 .ToListAsync(ct);
+
+            var list = orders.Select(o => new OrderListDto
+            {
+                OrderId = o.Id,
+                CustomerName = o.User != null ? o.User.FullName : "",
+                Status = o.Status.ToString(),
+                TotalAmount = o.TotalAmount,
+                CreatedOn = o.CreatedOn,
+
+                ProductName = o.Items
+                    .OrderBy(i => i.Id)
+                    .Select(i => i.Product != null ? i.Product.Name : null)
+                    .FirstOrDefault(),
+
+                Price = o.Items
+                    .OrderBy(i => i.Id)
+                    .Select(i => (decimal?)i.UnitPrice)
+                    .FirstOrDefault(),
+
+                Quantity = o.Items
+                    .OrderBy(i => i.Id)
+                    .Select(i => (int?)i.Quantity)
+                    .FirstOrDefault(),
+
+                Total = o.Items
+                    .OrderBy(i => i.Id)
+                    .Select(i => (decimal?)i.TotalPrice)
+                    .FirstOrDefault()
+            }).ToList();
 
             return ApiResponse<List<OrderListDto>>.Success(list, "Orders", 200);
         }
