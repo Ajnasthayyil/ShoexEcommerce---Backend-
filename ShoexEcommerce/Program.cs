@@ -165,10 +165,13 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAngular", policy =>
     {
         policy
-            .WithOrigins(
-                "http://localhost:4200",
-                "https://shoex-ecommerce.vercel.app/" 
-            )
+            .SetIsOriginAllowed(origin =>
+            {
+                var host = new Uri(origin).Host;
+                return host.Equals("localhost", StringComparison.OrdinalIgnoreCase) || 
+                       host.EndsWith(".vercel.app", StringComparison.OrdinalIgnoreCase) || 
+                       host.Equals("vercel.app", StringComparison.OrdinalIgnoreCase);
+            })
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
