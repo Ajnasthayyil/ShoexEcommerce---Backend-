@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SheoxEcommerce.Application.DTOs.Size;
 using ShoexEcommerce.Application.Interfaces.Product;
@@ -25,8 +25,9 @@ namespace ShoexEcommerce.API.Controllers.Admin
             return StatusCode(result.StatusCode, result);
         }
 
-        // ✅ Get all sizes (admin only)
+        // ✅ Get all sizes (admin only - allowed anonymous for public catalog filtering)
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAll()
         {
             var result = await _service.GetAllAsync();
