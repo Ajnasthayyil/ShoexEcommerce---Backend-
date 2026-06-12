@@ -241,8 +241,20 @@ else
         {
             context.Response.StatusCode = 500;
             context.Response.ContentType = "application/json";
+            
+            var exceptionHandlerPathFeature = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerPathFeature>();
+            var exception = exceptionHandlerPathFeature?.Error;
+            var errorMessage = exception != null 
+                ? $"{exception.GetType().Name}: {exception.Message}\nStack Trace:\n{exception.StackTrace}" 
+                : "An unexpected error occurred. Please try again later.";
+            
+            if (exception?.InnerException != null)
+            {
+                errorMessage += $"\nInner Exception: {exception.InnerException.GetType().Name}: {exception.InnerException.Message}\nStack Trace:\n{exception.InnerException.StackTrace}";
+            }
+            
             var payload = JsonSerializer.Serialize(
-                ApiResponse<string>.Fail("An unexpected error occurred. Please try again later.", 500));
+                ApiResponse<string>.Fail(errorMessage, 500));
             await context.Response.WriteAsync(payload);
         });
     });
