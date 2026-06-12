@@ -291,6 +291,7 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
+        Diagnostics.StartupException = ex;
         Console.WriteLine("SEED ERROR:");
         Console.WriteLine(ex.ToString());
     }
@@ -305,8 +306,45 @@ app.MapGet("/", () =>
     return Results.Redirect("/swagger");
 });
 
+app.MapGet("/db-status", async (AppDbContext db) =>
+{
+    if (Diagnostics.StartupException != null)
+    {
+        return Results.Problem(
+            detail: Diagnostics.StartupException.ToString(),
+            statusCode: 500,
+            title: "Database Seeding/Migration Failed");
+    }
+
+    try
+    {
+        var canConnect = await db.Database.CanConnectAsync();
+        var pendingMigrations = await db.Database.GetPendingMigrationsAsync();
+        var appliedMigrations = await db.Database.GetAppliedMigrationsAsync();
+
+        return Results.Ok(new
+        {
+            CanConnect = canConnect,
+            PendingMigrations = pendingMigrations,
+            AppliedMigrations = appliedMigrations
+        });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(
+            detail: ex.ToString(),
+            statusCode: 500,
+            title: "Database Access Error");
+    }
+});
+
 app.MapControllers();
 
 #endregion
 
 app.Run();
+
+public static class Diagnostics
+{
+    public static Exception? StartupException { get; set; }
+}
