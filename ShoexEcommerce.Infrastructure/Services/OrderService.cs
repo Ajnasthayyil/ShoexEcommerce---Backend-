@@ -359,6 +359,7 @@ namespace ShoexEcommerce.Infrastructure.Services
                 .Where(o => o.IsActive)
                 .Include(o => o.User)
                 .Include(o => o.Items).ThenInclude(i => i.Product)
+                .Include(o => o.Items).ThenInclude(i => i.Size)
                 .OrderByDescending(o => o.CreatedOn)
                 .ToListAsync(ct);
 
@@ -388,7 +389,19 @@ namespace ShoexEcommerce.Infrastructure.Services
                 Total = o.Items
                     .OrderBy(i => i.Id)
                     .Select(i => (decimal?)i.TotalPrice)
-                    .FirstOrDefault()
+                    .FirstOrDefault(),
+
+                Items = o.Items.Select(i => new OrderListDto.OrderItemDto
+                {
+                    ProductId = i.ProductId,
+                    ProductName = i.Product != null ? i.Product.Name : "",
+                    ProductImageUrl = i.Product != null ? i.Product.Images.OrderBy(img => img.Id).Select(img => img.Url).FirstOrDefault() ?? "" : "",
+                    SizeId = i.SizeId,
+                    SizeName = i.Size != null ? i.Size.Name : "",
+                    Quantity = i.Quantity,
+                    UnitPrice = i.UnitPrice,
+                    TotalPrice = i.TotalPrice
+                }).ToList()
             }).ToList();
 
             return ApiResponse<List<OrderListDto>>.Success(list, "Orders", 200);
