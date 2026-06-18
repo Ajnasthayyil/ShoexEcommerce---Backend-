@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ShoexEcommerce.Application.Common;
 using ShoexEcommerce.Application.DTOs.Cart;
 using ShoexEcommerce.Application.Interfaces.Cart;
@@ -170,7 +170,7 @@ namespace ShoexEcommerce.Infrastructure.Services
                     SizeName = i.Size.Name,
                     Quantity = i.Quantity,
                     LineTotal = i.Product.Price * i.Quantity,
-                    ImageUrl = i.Product.Images.OrderBy(x => x.Id).Select(x => x.Url).FirstOrDefault()
+                    ImageUrl = i.Product?.Images?.OrderBy(x => x.Id).Select(x => x.Url).FirstOrDefault() ?? ""
                 }).ToList()
             };
 

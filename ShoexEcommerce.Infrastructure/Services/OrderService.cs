@@ -298,7 +298,7 @@ namespace ShoexEcommerce.Infrastructure.Services
                 {
                     ProductId = i.ProductId,
                     ProductName = i.Product?.Name ?? "",
-                    ProductImageUrl = i.Product?.Images.OrderBy(img => img.Id).Select(img => img.Url).FirstOrDefault() ?? "",
+                    ProductImageUrl = i.Product?.Images?.OrderBy(img => img.Id).Select(img => img.Url).FirstOrDefault() ?? "",
                     SizeId = i.SizeId,
                     SizeName = i.Size?.Name ?? "",
                     Quantity = i.Quantity,
@@ -395,7 +395,7 @@ namespace ShoexEcommerce.Infrastructure.Services
                 {
                     ProductId = i.ProductId,
                     ProductName = i.Product != null ? i.Product.Name : "",
-                    ProductImageUrl = i.Product != null ? i.Product.Images.OrderBy(img => img.Id).Select(img => img.Url).FirstOrDefault() ?? "" : "",
+                    ProductImageUrl = i.Product?.Images?.OrderBy(img => img.Id).Select(img => img.Url).FirstOrDefault() ?? "",
                     SizeId = i.SizeId,
                     SizeName = i.Size != null ? i.Size.Name : "",
                     Quantity = i.Quantity,

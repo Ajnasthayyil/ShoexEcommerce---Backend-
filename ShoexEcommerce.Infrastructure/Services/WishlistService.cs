@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using ShoexEcommerce.Application.Common;
 using ShoexEcommerce.Application.DTOs.Wishlist;
 using ShoexEcommerce.Application.Interfaces.Wishlist;
@@ -34,7 +34,7 @@ namespace ShoexEcommerce.Infrastructure.Services
                     Name = w.Product.Name,
                     Price = w.Product.Price,
                     IsActive = w.Product.IsActive,
-                    ImageUrl = w.Product.Images.OrderBy(i => i.Id).Select(i => i.Url).FirstOrDefault()
+                    ImageUrl = w.Product?.Images?.OrderBy(i => i.Id).Select(i => i.Url).FirstOrDefault() ?? ""
                 }).ToList()
             };
 
